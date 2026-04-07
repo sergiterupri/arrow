@@ -75,6 +75,92 @@ func TestCParse(t *testing.T) {
 	}
 }
 
+func TestAtBeginningOfDayDST(t *testing.T) {
+	loc := loadLocation("America/New_York")
+	if loc == nil {
+		t.Skip("America/New_York timezone not available")
+	}
+
+	tests := []struct {
+		name     string
+		input    time.Time
+		expected time.Time
+	}{
+		{
+			name:     "spring forward day afternoon",
+			input:    time.Date(2026, time.March, 8, 15, 30, 0, 0, loc),
+			expected: time.Date(2026, time.March, 8, 0, 0, 0, 0, loc),
+		},
+		{
+			name:     "spring forward day just after transition",
+			input:    time.Date(2026, time.March, 8, 3, 0, 0, 0, loc),
+			expected: time.Date(2026, time.March, 8, 0, 0, 0, 0, loc),
+		},
+		{
+			name:     "fall back day afternoon",
+			input:    time.Date(2026, time.November, 1, 15, 30, 0, 0, loc),
+			expected: time.Date(2026, time.November, 1, 0, 0, 0, 0, loc),
+		},
+		{
+			name:     "regular day",
+			input:    time.Date(2026, time.June, 15, 14, 30, 0, 0, loc),
+			expected: time.Date(2026, time.June, 15, 0, 0, 0, 0, loc),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := New(test.input).AtBeginningOfDay()
+			if !result.Time.Equal(test.expected) {
+				t.Errorf("AtBeginningOfDay() = %s, expected %s", result, test.expected)
+			}
+		})
+	}
+}
+
+func TestAtBeginningOfWeekDST(t *testing.T) {
+	loc := loadLocation("America/New_York")
+	if loc == nil {
+		t.Skip("America/New_York timezone not available")
+	}
+
+	// 2026-03-08 is a Sunday (spring forward day)
+	input := time.Date(2026, time.March, 12, 10, 0, 0, 0, loc)  // Thursday after spring forward
+	expected := time.Date(2026, time.March, 8, 0, 0, 0, 0, loc)  // Sunday (spring forward day)
+	result := New(input).AtBeginningOfWeek()
+	if !result.Time.Equal(expected) {
+		t.Errorf("AtBeginningOfWeek() across spring forward = %s, expected %s", result, expected)
+	}
+}
+
+func TestAtBeginningOfMonthDST(t *testing.T) {
+	loc := loadLocation("America/New_York")
+	if loc == nil {
+		t.Skip("America/New_York timezone not available")
+	}
+
+	input := time.Date(2026, time.March, 15, 10, 0, 0, 0, loc)
+	expected := time.Date(2026, time.March, 1, 0, 0, 0, 0, loc)
+	result := New(input).AtBeginningOfMonth()
+	if !result.Time.Equal(expected) {
+		t.Errorf("AtBeginningOfMonth() in March = %s, expected %s", result, expected)
+	}
+}
+
+func TestAtBeginningOfYearDST(t *testing.T) {
+	loc := loadLocation("America/New_York")
+	if loc == nil {
+		t.Skip("America/New_York timezone not available")
+	}
+
+	input := time.Date(2026, time.November, 5, 10, 0, 0, 0, loc)
+	expected := time.Date(2026, time.January, 1, 0, 0, 0, 0, loc)
+	result := New(input).AtBeginningOfYear()
+	if !result.Time.Equal(expected) {
+		t.Errorf("AtBeginningOfYear() = %s, expected %s", result, expected)
+	}
+}
+
 func TestCFormat(t *testing.T) {
 	tests := []struct {
 		datetime time.Time

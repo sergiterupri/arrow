@@ -195,23 +195,23 @@ func (a Arrow) AtBeginningOfHour() Arrow {
 }
 
 func (a Arrow) AtBeginningOfDay() Arrow {
-	d := time.Duration(-a.Hour()) * Hour
-	return a.AtBeginningOfHour().Add(d)
+	year, month, day := a.Date()
+	return New(time.Date(year, month, day, 0, 0, 0, 0, a.Location()))
 }
 
 func (a Arrow) AtBeginningOfWeek() Arrow {
-	days := time.Duration(-1*int(a.Weekday())) * Day
-	return a.AtBeginningOfDay().Add(days)
+	t := a.AtBeginningOfDay()
+	year, month, day := t.Date()
+	return New(time.Date(year, month, day-int(t.Weekday()), 0, 0, 0, 0, t.Location()))
 }
 
 func (a Arrow) AtBeginningOfMonth() Arrow {
-	days := time.Duration(-1*int(a.Day())+1) * Day
-	return a.AtBeginningOfDay().Add(days)
+	year, month, _ := a.Date()
+	return New(time.Date(year, month, 1, 0, 0, 0, 0, a.Location()))
 }
 
 func (a Arrow) AtBeginningOfYear() Arrow {
-	days := time.Duration(-1*int(a.YearDay())+1) * Day
-	return a.AtBeginningOfDay().Add(days)
+	return New(time.Date(a.Year(), time.January, 1, 0, 0, 0, 0, a.Location()))
 }
 
 // Add any durations parseable by time.ParseDuration
